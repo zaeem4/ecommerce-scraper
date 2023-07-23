@@ -1195,13 +1195,13 @@ async def findByUrl(url: str = Form()):
         return {"success": False, "error": "Website template is not set"}
 
 
-@app.post("/user/signup", tags=["user"])
-async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
-    dbResponse = UserInfo.create_user(user, db)
-    if dbResponse["success"]:
-        return signJWT(dbResponse["user"].email)
-    else:
-        return dbResponse
+# @app.post("/user/signup", tags=["user"])
+# async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
+#     dbResponse = UserInfo.create_user(user, db)
+#     if dbResponse["success"]:
+#         return signJWT(dbResponse["user"].email)
+#     else:
+#         return dbResponse
 
 
 @app.post("/user/login", tags=["user"])
