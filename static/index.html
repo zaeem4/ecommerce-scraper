@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bootstrap 5 Example</title>
+    <title>Ecom Scraper</title>
     <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
@@ -11,8 +11,8 @@
     />
   </head>
   <body>
-    <!-- First Row - Logos and Heading -->
-    <div class="container mt-4">
+    <!-- First Section - Logos and Heading -->
+    <section class="container mt-4">
       <div class="row">
         <!-- First Section - Logo -->
         <div class="col-md-3 text-center mb-4 mb-md-0">
@@ -27,7 +27,7 @@
 
         <!-- Mid Section - Heading -->
         <div class="col-md-6 text-center">
-          <h1>E-commerce Product Scraping Tool </h1>
+          <h1>E-commerce Product Scraping Tool</h1>
         </div>
 
         <!-- Last Section - Logo -->
@@ -41,11 +41,12 @@
           />
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Second Row - Centered Form -->
+    <!-- Second and Third Sections - Centered Form and Product Card (Initially Hidden) -->
     <div class="container mt-4">
       <div class="row justify-content-center">
+        <!-- Second Section - Centered Form -->
         <div class="col-md-6">
           <!-- Form -->
           <form id="search-form" class="needs-validation">
@@ -90,7 +91,7 @@
             </button>
             <!-- Loader -->
             <div
-              class="spinner-border text-primary mt-2 d-none"
+              class="spinner-border text-primary mt-2 d-none justify-content-center"
               id="loader"
               role="status"
             >
@@ -98,40 +99,44 @@
             </div>
           </form>
         </div>
-      </div>
-    </div>
 
-    <!-- Third Row - Product Card (Initially Hidden) -->
-    <div class="container mt-4 d-none" id="product-card-container">
-      <div class="row justify-content-center">
-        <div class="col-md-4">
-          <!-- Product Card -->
-          <div class="card">
-            <img
-              src="#"
-              alt="/in/muhammad-zaeem-khan"
-              class="card-img-top"
-              id="product-image"
-            />
-            <div class="card-body">
-              <h5 class="card-title" id="product-title"></h5>
-              <p class="card-text" id="product-description"></p>
-              <p class="card-text" id="product-price"></p>
-              <a
-                href="#"
-                class="btn btn-primary justify-content-center"
-                id="product-link"
-                target="_blank"
-                >View Product</a
-              >
+        <!-- Third Section - Product Card (Initially Hidden) -->
+        <div class="col-md-6 d-none" id="product-card-container">
+          <div class="row justify-content-center">
+            <div class="col-md-8">
+              <!-- Product Card -->
+              <div class="card">
+                <img
+                  src="#"
+                  alt="/in/muhammad-zaeem-khan"
+                  class="card-img-top"
+                  id="product-image"
+                  style="
+                    width: auto;
+                    max-width: 15rem;
+                    height: auto;
+                    margin: auto;
+                    max-height: 15rem;
+                  "
+                />
+                <div class="card-body">
+                  <h5 class="card-title" id="product-title"></h5>
+                  <p class="card-text" id="product-description"></p>
+                  <p class="card-text" id="product-price"></p>
+                  <a
+                    href="#"
+                    class="btn btn-primary justify-content-center"
+                    id="product-link"
+                    target="_blank"
+                    >View Product</a
+                  >
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <br />
-    <br />
     <br />
 
     <!-- Bootstrap JS (optional, only needed for certain components) -->
@@ -185,9 +190,15 @@
                 console.log("Ajax call successful!", data);
                 if (data.success === true) {
                   // Show the product card and update its content
-                  $("#product-title").html(data.prod_title?.replace(/\n/g, "<br/>"));
-                  $("#product-description").html(data.prod_discription?.replace(/\n/g, "<br/>"));
-                  $("#product-price").html(data.prod_price?.replace(/\n/g, "<br/>"));
+                  $("#product-title").html(
+                    data.prod_title?.replace(/\n/g, "<br/>")
+                  );
+                  $("#product-description").html(
+                    data.prod_discription?.replace(/\n/g, "<br/>")
+                  );
+                  $("#product-price").html(
+                    data.prod_price?.replace(/\n/g, "<br/>")
+                  );
                   $("#product-link").attr("href", data.product_link);
                   $("#product-image").attr("src", data.img_link);
                   $("#product-card-container").removeClass("d-none");
@@ -201,7 +212,7 @@
 
                   setTimeout(() => {
                     $(".alert-danger").remove();
-                  }, 10000);
+                  }, 5000);
                 }
               },
               error: function (error) {
@@ -215,12 +226,12 @@
             });
           } else {
             $.ajax({
-              url:
-                "http://127.0.0.1:8000/find/" +
-                selectedWebName +
-                "/" +
-                searchText,
-              type: "GET",
+              url: "http://127.0.0.1:8000/find",
+              type: "POST",
+              data: {
+                id: searchText,
+                webName: selectedWebName,
+              },
               headers: {
                 "Access-Control-Allow-Origin": "*",
               },
@@ -235,9 +246,13 @@
                 console.log("Ajax call successful!", data);
                 if (data.success === true) {
                   // Show the product card and update its content
-                  $("#product-title").html(data.prod_title?.replace(/\n/g, "<br/>"));
+                  $("#product-title").html(
+                    data.prod_title?.replace(/\n/g, "<br/>")
+                  );
                   $("#product-description").html("");
-                  $("#product-price").html(data.prod_price?.replace(/\n/g, "<br/>"));
+                  $("#product-price").html(
+                    data.prod_price?.replace(/\n/g, "<br/>")
+                  );
                   $("#product-link").attr("href", data.product_link);
                   $("#product-image").attr("src", data.img_link);
                   $("#product-card-container").removeClass("d-none");
@@ -251,7 +266,7 @@
 
                   setTimeout(() => {
                     $(".alert-danger").remove();
-                  }, 10000);
+                  }, 5000);
                 }
               },
               error: function (error) {

@@ -1,5 +1,5 @@
 # pip3 install selenium
-# pip3 install
+# pip3 install webdriver_manager
 # sudo apt install chromium-chromedriver
 # cp /usr/lib/chromium-browser/chromedriver /usr/bin
 # import uvicorn
@@ -10,6 +10,7 @@ from fastapi import FastAPI, Form
 
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -48,6 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def browser_script():
     browser = webdriver.Chrome(
@@ -218,11 +220,14 @@ def root():
     return {"status": "Scraper is up"}
 
 
-@app.get("/find/{webName}/{id}", response_class=JSONResponse)
-async def findById(webName: str, id: str):
+@app.post("/find", response_class=JSONResponse)
+async def findById(webName: str = Form(), id: str = Form()):
     try:
-        if id.isspace():
+        if " " in id:
             return {"success": False, "error": "Enter correct input"}
+
+        if validators.url(id):
+            return {"success": False, "error": "Only id is acceptable"}
 
         browser = browser_script()
 
@@ -243,6 +248,7 @@ async def findById(webName: str, id: str):
 
                 browser.implicitly_wait(5)
                 sleep(3)
+
 
                 if browser.title == "Just a moment...":
                     # browser.get(browser.current_url)
@@ -797,7 +803,7 @@ async def findById(webName: str, id: str):
                 return {"success": False, "error": "Product not found. | 2", "e": e}
 
         browser.quit()
-        return {"success": True}
+        return {"success": False, "error":"website template not exists"}
     except Exception as e:
         return {"success": False, "error": "unable to process req", "e": e}
 
