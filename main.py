@@ -1,12 +1,17 @@
+# import uvicorn
 # pip3 install selenium
 # pip3 install webdriver_manager
 # sudo apt install chromium-chromedriver
 # cp /usr/lib/chromium-browser/chromedriver /usr/bin
-# import uvicorn
 # pip3 install validators
+# conda install -c conda-forge pyjwt
+# conda install -c conda-forge python-decouple
+# pip3 install "pydantic[email]"
+# pip3 install sqlalchemy
 
+# ?check_same_thread=False
 
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Body, Depends, HTTPException, Request, Response
 
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +29,15 @@ from time import sleep
 import urllib.parse as UrlParser
 import validators
 
+from model.User import Base
+from model.UserSchema import UserSchema, UserLoginSchema, UserInfo
+from auth.auth_bearer import JWTBearer
+from auth.auth_handler import signJWT
+
+from database.database import db_engine, SessionLocal
+from sqlalchemy.orm import Session
+
+
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--headless=new")
 chrome_options.add_argument("--no-sandbox")
@@ -36,6 +50,8 @@ chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 chrome_options.add_argument(
     "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
 )
+
+Base.metadata.create_all(bind=db_engine)
 
 app = FastAPI(debug=True)
 
@@ -50,6 +66,7 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 def browser_script():
     browser = webdriver.Chrome(
@@ -215,12 +232,41 @@ def browser_script():
     return browser
 
 
+# def get_db():
+#     """
+#     Method to generate database session
+#     :return: Session
+#     """
+#     db = None
+#     try:
+#         db = Session()
+#         yield db
+#     finally:
+#         db.close()
+
+
+@app.middleware("http")
+async def db_session_middleware(request: Request, call_next):
+    response = Response("Internal server error", status_code=500)
+    try:
+        request.state.db = SessionLocal()
+        response = await call_next(request)
+    finally:
+        request.state.db.close()
+    return response
+
+
+# Dependency
+def get_db(request: Request):
+    return request.state.db
+
+
 @app.get("/")
 def root():
     return {"status": "Scraper is up"}
 
 
-@app.post("/find", response_class=JSONResponse)
+@app.post("/find", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
 async def findById(webName: str = Form(), id: str = Form()):
     try:
         if " " in id:
@@ -248,7 +294,6 @@ async def findById(webName: str = Form(), id: str = Form()):
 
                 browser.implicitly_wait(5)
                 sleep(3)
-
 
                 if browser.title == "Just a moment...":
                     # browser.get(browser.current_url)
@@ -803,12 +848,12 @@ async def findById(webName: str = Form(), id: str = Form()):
                 return {"success": False, "error": "Product not found. | 2", "e": e}
 
         browser.quit()
-        return {"success": False, "error":"website template not exists"}
+        return {"success": False, "error": "website template not exists"}
     except Exception as e:
         return {"success": False, "error": "unable to process req", "e": e}
 
 
-@app.post("/get", response_class=JSONResponse)
+@app.post("/get", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
 async def findByUrl(url: str = Form()):
     if not validators.url(url):
         return {"success": False, "error": "Enter correct input"}
@@ -1148,6 +1193,23 @@ async def findByUrl(url: str = Form()):
 
     else:
         return {"success": False, "error": "Website template is not set"}
+
+
+@app.post("/user/signup", tags=["user"])
+async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
+    dbResponse = UserInfo.create_user(user, db)
+    if dbResponse["success"]:
+        return signJWT(dbResponse["user"].email)
+    else:
+        return dbResponse
+
+
+@app.post("/user/login", tags=["user"])
+async def user_login(user: UserLoginSchema = Body(...), db: Session = Depends(get_db)):
+    if UserInfo.check_user(user, db):
+        return signJWT(user.email)
+
+    return {"success": False, "error": "Wrong login details!"}
 
 
 # if __name__ == "__main__":

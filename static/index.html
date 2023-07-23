@@ -43,6 +43,16 @@
       </div>
     </section>
 
+    <!-- Show a message if JavaScript is disabled -->
+    <noscript>
+      <div class="container">
+        <div class="alert alert-danger mt-4">
+          <strong>Error:</strong> JavaScript is disabled in your browser. Please
+          enable JavaScript to view the content.
+        </div>
+      </div>
+    </noscript>
+
     <!-- Second and Third Sections - Centered Form and Product Card (Initially Hidden) -->
     <div class="container mt-4">
       <div class="row justify-content-center">
@@ -60,13 +70,13 @@
                 required
               >
                 <option value="" disabled selected>Select a website</option>
+                <option value="url-search">Custom url search</option>
                 <option value="www2.cip1.com">www2.cip1.com</option>
                 <option value="www.ebay.com">www.ebay.com</option>
                 <option value="www.partzilla.com">www.partzilla.com</option>
                 <option value="partsouq.com">partsouq.com</option>
                 <option value="amazon.com">amazon.com</option>
                 <option value="www.aliexpress.com">www.aliexpress.com</option>
-                <option value="url-search">Custom url search</option>
               </select>
               <div class="invalid-feedback">Please select a website.</div>
             </div>
@@ -147,13 +157,21 @@
 
     <!-- Your custom script -->
     <script>
+      // Check if there is a token in LocalStorage
+      let token = localStorage.getItem("token");
+      if (!token) {
+        // Redirect to login.html if token not found
+        window.location.href = "login.html";
+      }
+    </script>
+    <script>
       $(document).ready(function () {
         // Add event listener to the form button
         $("#search-button").on("click", function (event) {
           event.preventDefault();
 
           // Validate the form
-          var form = $("#search-form")[0];
+          let form = $("#search-form")[0];
           if (form.checkValidity() === false) {
             form.classList.add("was-validated");
             return;
@@ -164,10 +182,10 @@
           $("#search-button").addClass("d-none");
 
           // Get the selected option value from the web-name select element
-          var selectedWebName = $("#web-name").val();
+          let selectedWebName = $("#web-name").val();
 
           // Get the input value from the search-text input element
-          var searchText = $("#search-text").val();
+          let searchText = $("#search-text").val();
 
           if (selectedWebName == "url-search") {
             $.ajax({
@@ -181,32 +199,32 @@
               },
               // withCredentials: true,
               crossDomain: true,
-              success: function (data) {
+              success: function (response) {
                 // Hide the loader and show the button when the response is received
                 $("#loader").addClass("d-none");
                 $("#search-button").removeClass("d-none");
 
                 // Handle the successful response here
-                console.log("Ajax call successful!", data);
-                if (data.success === true) {
+                console.log("successful!", response);
+                if (response.success === true) {
                   // Show the product card and update its content
                   $("#product-title").html(
-                    data.prod_title?.replace(/\n/g, "<br/>")
+                    response.prod_title?.replace(/\n/g, "<br/>")
                   );
                   $("#product-description").html(
-                    data.prod_discription?.replace(/\n/g, "<br/>")
+                    response.prod_discription?.replace(/\n/g, "<br/>")
                   );
                   $("#product-price").html(
-                    data.prod_price?.replace(/\n/g, "<br/>")
+                    response.prod_price?.replace(/\n/g, "<br/>")
                   );
-                  $("#product-link").attr("href", data.product_link);
-                  $("#product-image").attr("src", data.img_link);
+                  $("#product-link").attr("href", response.product_link);
+                  $("#product-image").attr("src", response.img_link);
                   $("#product-card-container").removeClass("d-none");
                 } else {
                   // Add a Bootstrap alert of error to show the error
-                  var errorAlert =
+                  let errorAlert =
                     '<div class="alert alert-danger mt-2" role="alert">Error: ' +
-                    data.error +
+                    response.error +
                     "</div>";
                   $("#search-form").append(errorAlert);
 
@@ -221,7 +239,8 @@
                 $("#search-button").removeClass("d-none");
 
                 // Handle the error response here
-                console.error("Error in Ajax call!", error);
+                console.error("Error in find", error);
+                alert("Error in server!");
               },
             });
           } else {
@@ -237,31 +256,33 @@
               },
               // withCredentials: true,
               crossDomain: true,
-              success: function (data) {
+              success: function (response) {
                 // Hide the loader and show the button when the response is received
                 $("#loader").addClass("d-none");
                 $("#search-button").removeClass("d-none");
 
                 // Handle the successful response here
-                console.log("Ajax call successful!", data);
-                if (data.success === true) {
+                console.log("successful!", response);
+
+                if (response.success === true) {
                   // Show the product card and update its content
                   $("#product-title").html(
-                    data.prod_title?.replace(/\n/g, "<br/>")
+                    response.prod_title?.replace(/\n/g, "<br/>")
                   );
                   $("#product-description").html("");
                   $("#product-price").html(
-                    data.prod_price?.replace(/\n/g, "<br/>")
+                    response.prod_price?.replace(/\n/g, "<br/>")
                   );
-                  $("#product-link").attr("href", data.product_link);
-                  $("#product-image").attr("src", data.img_link);
+                  $("#product-link").attr("href", response.product_link);
+                  $("#product-image").attr("src", response.img_link);
                   $("#product-card-container").removeClass("d-none");
                 } else {
                   // Add a Bootstrap alert of error to show the error
-                  var errorAlert =
+                  let errorAlert =
                     '<div class="alert alert-danger mt-2" role="alert">Error: ' +
-                    data.error +
+                    response.error +
                     "</div>";
+
                   $("#search-form").append(errorAlert);
 
                   setTimeout(() => {
@@ -275,7 +296,8 @@
                 $("#search-button").removeClass("d-none");
 
                 // Handle the error response here
-                console.error("Error in Ajax call!", error);
+                console.error("Error in find", error);
+                alert("Error in server!");
               },
             });
           }
