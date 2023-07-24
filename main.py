@@ -266,8 +266,594 @@ def root():
     return {"status": "Scraper is up"}
 
 
-@app.post("/find", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def findById(webName: str = Body(), id: str = Body()):
+@app.post("/by-website-name", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
+async def find_by_website_name(webName: str = Body(), id: str = Body()):
+    try:
+        if " " in id:
+            return {"success": False, "error": "Enter correct input"}
+
+        if validators.url(id):
+            return {"success": False, "error": "Only id is acceptable"}
+
+        browser = browser_script()
+
+        if webName == "www2.cip1.com":
+            try:
+                web = "https://www2.cip1.com/"
+
+                browser.get(web)
+                browser.implicitly_wait(5)
+
+                search_box = browser.find_element(By.ID, "search_query")
+                search_box.send_keys(id)
+
+                sleep(1)
+
+                search_button = browser.find_element(By.CLASS_NAME, "headersearch-icon")
+                search_button.click()
+
+                browser.implicitly_wait(5)
+                sleep(3)
+
+                if browser.title == "Just a moment...":
+                    # browser.get(browser.current_url)
+                    # browser.implicitly_wait(5)
+                    browser.quit()
+                    return {"success": False, "error": "Cloudfare blockage"}
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "product not found | 4", "e": e}
+
+            try:
+                if wait(browser, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (
+                            By.XPATH,
+                            '//ul[contains(@class, "snize-search-results-content")]',
+                        )
+                    )
+                ):
+                    try:
+                        li = browser.find_elements(
+                            By.XPATH,
+                            '//ul/li[contains(@class,"snize-product snize-product-in-stock")]',
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+
+                            href_link = item.find_element(
+                                By.XPATH, "./a"
+                            ).get_attribute("href")
+
+                            img_link = item.find_element(
+                                By.XPATH, "./*/*/div/*/img"
+                            ).get_attribute("src")
+
+                            prod_price = item.find_element(
+                                By.XPATH, "./*/*/span/div"
+                            ).text
+
+                            prod_title = item.find_element(
+                                By.XPATH, "./*/*/span/span"
+                            ).text
+
+                            browser.quit()
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_title": prod_title,
+                                "prod_price": prod_price,
+                                "product_link": href_link,
+                            }
+                        else:
+                            browser.quit()
+                            return {"success": False, "error": "Product not found. | 1"}
+                    except Exception as e:
+                        browser.quit()
+                        return {"success": False, "error": "Product not found. | 3"}
+
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "Product not found. | 2", "e": e}
+
+        elif webName == "www.ebay.com":
+            try:
+                web = "https://www.ebay.com"
+
+                browser.get(web)
+                browser.implicitly_wait(5)
+
+                search_box = browser.find_element(
+                    By.CLASS_NAME, "ui-autocomplete-input"
+                )
+                search_box.send_keys(id)
+
+                sleep(1)
+
+                search_button = browser.find_element(By.ID, "gh-btn")
+                search_button.click()
+
+                browser.implicitly_wait(5)
+                sleep(3)
+
+                if browser.title == "Just a moment...":
+                    # browser.get(browser.current_url)
+                    # browser.implicitly_wait(5)
+                    browser.quit()
+                    return {"success": False, "error": "Cloudfare blockage"}
+
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "product not found | 4", "e": e}
+
+            try:
+                if wait(browser, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (
+                            By.XPATH,
+                            '//ul[contains(@class, "srp-results srp-list")]',
+                        )
+                    )
+                ):
+                    try:
+                        li = browser.find_elements(
+                            By.XPATH,
+                            '//ul/li[contains(@class,"s-item__pl-on-bottom")]',
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+                            href_link = item.find_element(
+                                By.XPATH,
+                                "./*/div[1]/*/a",
+                            ).get_attribute("href")
+                            img_link = item.find_element(
+                                By.XPATH,
+                                "./*/div[1]/*/a/*/img",
+                            ).get_attribute("src")
+                            prod_price = item.find_element(
+                                By.XPATH,
+                                './*/div[2]/div[contains(@class, "s-item__details")]/div[1]/span',
+                            ).text
+                            prod_title = item.find_element(
+                                By.XPATH,
+                                "./*/div[2]/a/div/span",
+                            ).text
+
+                            browser.quit()
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_title": prod_title,
+                                "prod_price": prod_price,
+                                "product_link": href_link,
+                            }
+                        else:
+                            browser.quit()
+                            return {"success": False, "error": "Product not found. | 1"}
+                    except Exception as e:
+                        browser.quit()
+                        return {
+                            "success": False,
+                            "error": "Product not found. | 3",
+                            "e": e,
+                        }
+
+            except Exception as e:
+                try:
+                    if wait(browser, 10).until(
+                        EC.presence_of_all_elements_located(
+                            (
+                                By.XPATH,
+                                '//ul[contains(@class, "srp-results srp-grid")]',
+                            )
+                        )
+                    ):
+                        try:
+                            li = browser.find_elements(
+                                By.XPATH,
+                                '//ul/li[contains(@class,"s-item__pl-on-bottom")]',
+                            )
+
+                            if li and len(li) > 0:
+                                item = li[0]
+                                href_link = item.find_element(
+                                    By.XPATH,
+                                    "./*/div[1]/*/a",
+                                ).get_attribute("href")
+                                img_link = item.find_element(
+                                    By.XPATH,
+                                    "./*/div[1]/*/a/*/img",
+                                ).get_attribute("src")
+                                prod_price = item.find_element(
+                                    By.XPATH,
+                                    "./*/div[2]/div[contains(@class, 's-item__details')]/div[1]/span",
+                                ).text
+                                prod_title = item.find_element(
+                                    By.XPATH,
+                                    "./*/div[2]/a/div/span",
+                                ).text
+
+                                browser.quit()
+                                return {
+                                    "success": True,
+                                    "img_link": img_link,
+                                    "prod_title": prod_title,
+                                    "prod_price": prod_price,
+                                    "product_link": href_link,
+                                }
+                            else:
+                                browser.quit()
+                                return {
+                                    "success": False,
+                                    "error": "Product not found. | 1",
+                                }
+                        except Exception as e:
+                            browser.quit()
+                            return {
+                                "success": False,
+                                "error": "Product not found. | 3",
+                                "e": e,
+                            }
+
+                except Exception as e:
+                    browser.quit()
+                    return {"success": False, "error": "Product not found. | 2", "e": e}
+
+        elif webName == "www.partzilla.com":
+            web = f"https://www.partzilla.com/search?q={id}&ui=typeahead"
+
+            # browser.get(web)
+            # browser.implicitly_wait(5)
+
+            # search_box = browser.find_element(By.CLASS_NAME, "search-input")
+            # search_box.send_keys(id)
+
+            # sleep(3)
+
+            # search_button = browser.find_element(By.CLASS_NAME, "search-button")
+            # search_button.click()
+
+            # browser.implicitly_wait(5)
+            # sleep(3)
+
+            # if browser.title == "Just a moment...":
+            browser.get(web)
+            browser.implicitly_wait(5)
+
+            try:
+                if wait(browser, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (By.XPATH, '//div[contains(@class, "product-cards")]')
+                    )
+                ):
+                    try:
+                        li = browser.find_elements(
+                            By.XPATH, '//div[contains(@class,"product-card-container")]'
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+                            href_link = item.find_element(
+                                By.XPATH, "./*/div[1]/a"
+                            ).get_attribute("href")
+                            img_link = item.find_element(
+                                By.XPATH, "./*/div[1]/a/div"
+                            ).get_attribute("style")
+
+                            img_link = (
+                                img_link.replace("background-image: url(", "")
+                                .replace('"', "")
+                                .replace(")", "")
+                                .replace(";", "")
+                            )
+
+                            prod_price = item.find_element(
+                                By.XPATH, "./*/div[2]/*/div[1]/*/div[1]/*"
+                            ).text
+
+                            prod_title = item.find_element(
+                                By.XPATH, "./*/div[1]/div/a"
+                            ).text
+
+                            browser.quit()
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_title": prod_title,
+                                "prod_price": prod_price,
+                                "product_link": href_link,
+                            }
+                        else:
+                            browser.quit()
+                            return {"success": False, "error": "Product not found. | 1"}
+                    except Exception as e:
+                        browser.quit()
+                        return {
+                            "success": False,
+                            "error": "Product not found. | 3",
+                            "e": e,
+                        }
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "Product not found. | 2", "e": e}
+
+        elif webName == "partsouq.com":
+            web = f"https://partsouq.com/en/search/all?q={id}"
+
+            # browser.get(web)
+            # browser.implicitly_wait(5)
+
+            # search_box = browser.find_element(By.XPATH, "//input[@name='q']")
+            # search_box.send_keys(id)
+
+            # sleep(3)
+
+            # search_button = browser.find_element(
+            #     By.XPATH, '//button[contains(@class,"btn btn-success btn-sm")]'
+            # )
+            # search_button.click()
+
+            # if browser.title == "Just a moment...":
+
+            browser.get(web)
+            browser.implicitly_wait(2)
+
+            try:
+                if wait(browser, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (By.XPATH, '//div[contains(@class, "search-result-container")]')
+                    )
+                ):
+                    try:
+                        li = browser.find_elements(
+                            By.XPATH,
+                            '//div[contains(@class,"table-responsive search-result-vin search-catalog")]',
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+                            img_link = item.find_element(
+                                By.XPATH, "./*/*/tr[2]/td[1]/img"
+                            ).get_attribute("src")
+                            prod_title = item.find_element(
+                                By.XPATH, "./*/div[3]/*/div[2]/*/span"
+                            ).text
+
+                            product_link = browser.current_url
+
+                            browser.quit()
+
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_title": prod_title,
+                                "product_link": product_link,
+                                "prod_discription": "",
+                                "prod_price": "",
+                            }
+
+                        li = browser.find_elements(
+                            By.XPATH,
+                            '//div[contains(@class,"product-col list clearfix")]',
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+                            img_link = item.find_element(
+                                By.XPATH, "./*/div[1]/*/a"
+                            ).get_attribute("href")
+                            prod_price = item.find_element(
+                                By.XPATH, "./*/div[3]/*/div[2]/*/span"
+                            ).text
+                            prod_title = item.find_element(
+                                By.XPATH, "./*/div[2]/*/h1"
+                            ).text
+
+                            product_link = browser.current_url
+
+                            browser.quit()
+
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_price": prod_price,
+                                "prod_title": prod_title,
+                                "product_link": product_link,
+                                "prod_discription": "",
+                            }
+                        else:
+                            browser.quit()
+                            return {"success": False, "error": "Product not found. | 1"}
+
+                        print(6)
+                    except Exception as e:
+                        browser.quit()
+                        return {
+                            "success": False,
+                            "error": "Product not found. | 3",
+                            "e": e,
+                        }
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "Product not found. | 2", "e": e}
+
+        elif webName == "www.aliexpress.com":
+            web = "https://www.aliexpress.com"
+
+            browser.get(web)
+            browser.implicitly_wait(5)
+
+            search_box = browser.find_element(By.ID, "search-key")
+            search_box.send_keys(id)
+
+            sleep(1)
+
+            search_button = browser.find_element(By.CLASS_NAME, "search-button")
+            search_button.click()
+
+            browser.implicitly_wait(5)
+            sleep(5)
+
+            if browser.title == "Just a moment...":
+                # url = browser.current_url
+                # browser.quit()
+                # sleep(1)
+                # browser.get(url)
+                # browser.implicitly_wait(5)
+                return {"success": False, "error": "Cloudfare blockage"}
+            try:
+                if wait(browser, 10).until(
+                    EC.presence_of_all_elements_located((By.ID, "card-list"))
+                ):
+                    try:
+                        li = browser.find_elements(
+                            By.XPATH, '//a[contains(@class,"search-card-item")]'
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+
+                            href_link = item.get_attribute("href")
+
+                            img_link = item.find_element(
+                                By.XPATH,
+                                "./div[1]/img",
+                            ).get_attribute("src")
+
+                            prod_price = item.find_element(
+                                By.XPATH,
+                                "./div[2]/div[1]",
+                            ).text
+
+                            prod_title = item.find_element(
+                                By.XPATH,
+                                "./div[2]/div[4]/*",
+                            ).text
+                            browser.quit()
+
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_price": prod_price,
+                                "prod_title": prod_title,
+                                "product_link": href_link,
+                            }
+                        else:
+                            browser.quit()
+                            return {"success": False, "error": "Product not found. | 1"}
+                    except Exception as e:
+                        browser.quit()
+                        return {
+                            "success": False,
+                            "error": "Product not found. | 3",
+                            "e": e,
+                        }
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "Product not found. | 2", "e": e}
+
+        elif webName == "amazon.com":
+            web = f"https://www.amazon.com/s?k={id}"
+            # web = "https://www.amazon.com"
+
+            # browser.get(web)
+            # browser.implicitly_wait(5)
+
+            # search_box = browser.find_element(By.ID, "twotabsearchtextbox")
+            # search_box.send_keys(id)
+
+            # sleep(1)
+
+            # search_button = browser.find_element(By.ID, "nav-search-submit-button")
+            # search_button.click()
+
+            # browser.implicitly_wait(5)
+            # sleep(3)
+
+            # if browser.title == "Just a moment...":
+            #     # url = browser.current_url
+            #     # browser.quit()
+            #     # sleep(3)
+            #     # browser.get(url)
+            #     # browser.implicitly_wait(5)
+            #     return {"success": False, "error": "Cloudfare blockage"}
+
+            browser.get(web)
+            browser.implicitly_wait(5)
+
+            try:
+                if wait(browser, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (
+                            By.XPATH,
+                            '//div[contains(@class, "s-main-slot s-result-list s-search-results sg-row")]',
+                        )
+                    )
+                ):
+                    try:
+                        li = browser.find_elements(
+                            By.XPATH,
+                            '//div[contains(@data-component-type, "s-search-result")]',
+                        )
+
+                        if li and len(li) > 0:
+                            item = li[0]
+
+                            href_link = item.find_element(
+                                By.XPATH,
+                                "./*/*/*/*/div[1]/*/a",
+                            ).get_attribute("href")
+
+                            img_link = item.find_element(
+                                By.XPATH,
+                                "./*/*/*/*/div[1]/*/a/*/img",
+                            ).get_attribute("src")
+
+                            prod_price = item.find_element(
+                                By.XPATH,
+                                "./*/*/*/*/div[2]",
+                            ).text
+
+                            # prod_price = prod_price[0].text
+
+                            # prod_title = item.find_elements(
+                            #     By.XPATH,
+                            #     "./*/*/*/*/div[2]/div[contains(@class, 'a-section a-spacing-none a-spacing-top-small s-price-instructions-style')]",
+                            # )
+
+                            browser.quit()
+
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_price": prod_price,
+                                # "prod_title": prod_title,
+                                "product_link": href_link,
+                            }
+                        else:
+                            browser.quit()
+                            return {"success": False, "error": "Product not found. | 1"}
+
+                    except Exception as e:
+                        browser.quit()
+                        return {
+                            "success": False,
+                            "error": "Product not found. | 3",
+                            "e": e,
+                        }
+            except Exception as e:
+                browser.quit()
+                return {"success": False, "error": "Product not found. | 2", "e": e}
+
+        browser.quit()
+        return {"success": False, "error": "website template not exists"}
+    except Exception as e:
+        return {"success": False, "error": "unable to process req", "e": e}
+
+@app.post("/all-search", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
+async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
     try:
         if " " in id:
             return {"success": False, "error": "Enter correct input"}
@@ -853,8 +1439,8 @@ async def findById(webName: str = Body(), id: str = Body()):
         return {"success": False, "error": "unable to process req", "e": e}
 
 
-@app.post("/get", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def findByUrl(url: str = Form()):
+@app.post("/by-url", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
+async def find_by_url(url: str = Form()):
     if not validators.url(url):
         return {"success": False, "error": "Enter correct input"}
 
@@ -1195,13 +1781,13 @@ async def findByUrl(url: str = Form()):
         return {"success": False, "error": "Website template is not set"}
 
 
-# @app.post("/signup", tags=["user"])
-# async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
-#     dbResponse = UserInfo.create_user(user, db)
-#     if dbResponse["success"]:
-#         return signJWT(dbResponse["user"].email)
-#     else:
-#         return dbResponse
+@app.post("/signup", tags=["user"])
+async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
+    dbResponse = UserInfo.create_user(user, db)
+    if dbResponse["success"]:
+        return signJWT(dbResponse["user"].email)
+    else:
+        return dbResponse
 
 
 @app.post("/login", tags=["user"])

@@ -10,7 +10,17 @@
       rel="stylesheet"
     />
   </head>
+
   <body>
+    <style>
+      /* Position the logout button at fixed top-right */
+      #logout-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+      }
+    </style>
     <!-- First Section - Logos and Heading -->
     <section class="container mt-4">
       <div class="row">
@@ -70,7 +80,11 @@
                 required
               >
                 <option value="" disabled selected>Select a website</option>
+                <option value="" disabled>--------------------</option>
                 <option value="url-search">Custom url search</option>
+                <option value="" disabled>--------------------</option>
+                <option value="all-search">All search</option>
+                <option value="" disabled>-------------------</option>
                 <option value="www2.cip1.com">www2.cip1.com</option>
                 <option value="www.ebay.com">www.ebay.com</option>
                 <option value="www.partzilla.com">www.partzilla.com</option>
@@ -145,6 +159,33 @@
             </div>
           </div>
         </div>
+        <!-- Add a new div with a table to display responses for "by-url" -->
+        <div class="col-md-12 d-none" id="url-search-response">
+          <table class="table table-bordered mt-4">
+            <thead>
+              <tr>
+                <th>Website Name</th>
+                <th>Price</th>
+                <th>Title</th>
+                <th>Product Link</th>
+              </tr>
+            </thead>
+            <tbody id="all-search-response">
+              <!-- This table body will be populated with responses from the /by-url API -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add a new div for the logout button -->
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-md-12 text-start">
+          <button type="button" class="btn btn-danger" id="logout-button">
+            Logout
+          </button>
+        </div>
       </div>
     </div>
     <br />
@@ -163,12 +204,23 @@
         // Redirect to login.html if token not found
         window.location.href = "login.html";
       }
+      $(document).ready(function () {
+        // Add event listener to the logout button
+        $("#logout-button").on("click", function () {
+          // Clear the token from LocalStorage and redirect to login.html
+          localStorage.removeItem("token");
+          window.location.href = "login.html";
+        });
+      });
     </script>
     <script>
       $(document).ready(function () {
         // Add event listener to the form button
         $("#search-button").on("click", function (event) {
           event.preventDefault();
+          $("#product-card-container").addClass("d-none");
+          $("#url-search-response").addClass("d-none");
+          $("#all-search-response").empty().addClass("d-none");
 
           // Validate the form
           let form = $("#search-form")[0];
@@ -189,7 +241,7 @@
 
           if (selectedWebName == "url-search") {
             $.ajax({
-              url: "http://127.0.0.1:8000/get",
+              url: "http://127.0.0.1:8000/by-url",
               type: "POST",
 
               data: {
@@ -247,9 +299,103 @@
                 alert("Error in server!");
               },
             });
+          } else if (selectedWebName == "all-search") {
+            let websiteUrls = [
+              "www2.cip1.com",
+              "www.partzilla.com",
+              "www.ebay.com",
+              "partsouq.com",
+              "amazon.com",
+              "www.aliexpress.com",
+            ];
+            let allSearchResponses = [];
+            // Function to make the API call for each URL
+            function callAllSearchApi(websiteName) {
+              $.ajax({
+                url: "http://127.0.0.1:8000/all-search",
+                type: "POST",
+
+                data: JSON.stringify({
+                  id: searchText,
+                  webName: websiteName,
+                }),
+
+                contentType: "application/json",
+                dataType: "json",
+                headers: {
+                  "Access-Control-Allow-Origin": "*",
+                  Authorization: "Bearer " + localStorage.getItem("token"),
+                },
+                crossDomain: true,
+                success: function (response) {
+                  // Handle the successful response here
+                  allSearchResponses.push({ ...response, websiteName });
+
+                  if (response.success === false) {
+                    console.error("Error in response", response);
+                  }
+
+                  // Check if all API calls have been completed
+                  if (allSearchResponses.length === websiteUrls.length) {
+                    // Hide the loader and show the button
+                    $("#loader").addClass("d-none");
+                    $("#search-button").removeClass("d-none");
+
+                    // Show the results for each website
+                    for (let i = 0; i < allSearchResponses.length; i++) {
+                      let response = allSearchResponses[i];
+                      // Add code to display results for each website in the UI
+                      if (response.success) {
+                        let tableRow = `<tr>
+                                            <td>${response.websiteName}</td>
+                                            <td>${response.prod_price?.replace(
+                                              /\n/g,
+                                              "<br/>"
+                                            )}</td>
+                                            <td>${response.prod_title?.replace(
+                                              /\n/g,
+                                              "<br/>"
+                                            )}</td>
+                                            <td><a href="${
+                                              response.product_link
+                                            }" target="_blank">View Product</a></td>
+                                        </tr>`;
+                        $("#url-search-response").removeClass("d-none");
+                        $("#all-search-response")
+                          .removeClass("d-none")
+                          .append(tableRow);
+                      }
+                    }
+                  }
+                },
+                error: function (error) {
+                  // Handle the error response here
+                  console.error("Error in all-search", error);
+                  aler("Error in server");
+                  // Check if all API calls have been completed
+                  // if (allSearchResponses.length === websiteUrls.length) {
+                  //   // Hide the loader and show the button
+                  //   $("#loader").addClass("d-none");
+                  //   $("#search-button").removeClass("d-none");
+
+                  //   // Show the results for each website
+                  //   for (let i = 0; i < allSearchResponses.length; i++) {
+                  //     let response = allSearchResponses[i];
+                  //     // Add code to display results for each website in the UI
+                  //     // For example, you can create separate product cards for each response.
+                  //   }
+                  // }
+                },
+              });
+            }
+
+            // Call the API for each URL in the websiteUrls array
+            for (let i = 0; i < websiteUrls.length; i++) {
+              callAllSearchApi(websiteUrls[i]);
+            }
           } else {
             $.ajax({
-              url: "http://127.0.0.1:8000/find",
+              url: "http://127.0.0.1:8000/by-website-name",
               type: "POST",
 
               data: JSON.stringify({
@@ -309,8 +455,6 @@
               },
             });
           }
-
-          // Make an Ajax call using the constructed URL
         });
       });
     </script>
