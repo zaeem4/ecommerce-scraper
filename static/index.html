@@ -191,11 +191,15 @@
             $.ajax({
               url: "http://127.0.0.1:8000/get",
               type: "POST",
+
               data: {
                 url: searchText,
-              },
+              }, // Convert JS object to JSON string
+              // contentType: "application/json", // Set Content-Type header to JSON
+              // dataType: "json",
               headers: {
                 "Access-Control-Allow-Origin": "*",
+                Authorization: "Bearer " + localStorage.getItem("token"),
               },
               // withCredentials: true,
               crossDomain: true,
@@ -247,12 +251,16 @@
             $.ajax({
               url: "http://127.0.0.1:8000/find",
               type: "POST",
-              data: {
+
+              data: JSON.stringify({
                 id: searchText,
                 webName: selectedWebName,
-              },
+              }), // Convert JS object to JSON string
+              contentType: "application/json", // Set Content-Type header to JSON
+              dataType: "json",
               headers: {
                 "Access-Control-Allow-Origin": "*",
+                Authorization: "Bearer " + localStorage.getItem("token"),
               },
               // withCredentials: true,
               crossDomain: true,

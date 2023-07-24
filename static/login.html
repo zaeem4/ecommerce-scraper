@@ -146,10 +146,12 @@
           $.ajax({
             url: "http://127.0.0.1:8000/login",
             type: "POST",
-            data: {
-              username: username,
+            data: JSON.stringify({
+              email: username,
               password: password,
-            },
+            }), // Convert JS object to JSON string
+            contentType: "application/json", // Set Content-Type header to JSON
+            dataType: "json",
             headers: {
               "Access-Control-Allow-Origin": "*",
             },
@@ -157,7 +159,7 @@
             success: function (response) {
               if (response.success === true) {
                 // Save the token in LocalStorage
-                localStorage.setItem("token", response.token);
+                localStorage.setItem("token", response.access_token);
 
                 // Redirect to the main website
                 window.location.href = "index.html";

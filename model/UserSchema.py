@@ -4,16 +4,16 @@ from model.User import Users
 
 
 class UserSchema(BaseModel):
-    email: EmailStr = Field(...)
-    password: str = Field(...)
+    email: EmailStr = Field()
+    password: str = Field()
 
     class Config:
         orm_mode = True
 
 
 class UserLoginSchema(BaseModel):
-    email: EmailStr = Field(...)
-    password: str = Field(...)
+    email: EmailStr = Field()
+    password: str = Field()
 
 
 class UserInfo:
@@ -21,7 +21,11 @@ class UserInfo:
         return db.query(Users).filter(Users.email == email).first()
 
     def get_user_by_email_and_password(email, password, db):
-        return db.query(Users).filter(Users.email == email).first()
+        return (
+            db.query(Users)
+            .filter(Users.email == email, Users.password == password)
+            .first()
+        )
 
     def create_user(user, db):
         db_user = UserInfo.get_user_by_email(email=user.email, db=db)

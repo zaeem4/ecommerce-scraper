@@ -11,7 +11,7 @@
 
 # ?check_same_thread=False
 
-from fastapi import FastAPI, Form, Body, Depends, HTTPException, Request, Response
+from fastapi import FastAPI, Body, Depends, Request, Response, Form
 
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -267,7 +267,7 @@ def root():
 
 
 @app.post("/find", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def findById(webName: str = Form(), id: str = Form()):
+async def findById(webName: str = Body(), id: str = Body()):
     try:
         if " " in id:
             return {"success": False, "error": "Enter correct input"}
@@ -1100,7 +1100,7 @@ async def findByUrl(url: str = Form()):
 
                         prod_title = browser.find_element(
                             By.XPATH,
-                            '//*[@id="root"]/div[3]/div[1]/div[1]/div[2]/div[1]/h1',
+                            '//*[contains(@data-pl,"product-title")]',
                         ).text
 
                         prod_price = browser.find_element(
@@ -1195,7 +1195,7 @@ async def findByUrl(url: str = Form()):
         return {"success": False, "error": "Website template is not set"}
 
 
-# @app.post("/user/signup", tags=["user"])
+# @app.post("/signup", tags=["user"])
 # async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
 #     dbResponse = UserInfo.create_user(user, db)
 #     if dbResponse["success"]:
@@ -1204,8 +1204,8 @@ async def findByUrl(url: str = Form()):
 #         return dbResponse
 
 
-@app.post("/user/login", tags=["user"])
-async def user_login(user: UserLoginSchema = Body(...), db: Session = Depends(get_db)):
+@app.post("/login", tags=["user"])
+async def user_login(user: UserLoginSchema = Body(), db: Session = Depends(get_db)):
     if UserInfo.check_user(user, db):
         return signJWT(user.email)
 
