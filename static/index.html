@@ -304,9 +304,9 @@
               "www2.cip1.com",
               "www.partzilla.com",
               "www.ebay.com",
-              "partsouq.com",
-              "amazon.com",
-              "www.aliexpress.com",
+              // "partsouq.com",
+              // "www.aliexpress.com",
+              // "amazon.com",
             ];
             let allSearchResponses = [];
             // Function to make the API call for each URL
@@ -329,6 +329,7 @@
                 crossDomain: true,
                 success: function (response) {
                   // Handle the successful response here
+
                   allSearchResponses.push({ ...response, websiteName });
 
                   if (response.success === false) {
@@ -346,31 +347,35 @@
                       let response = allSearchResponses[i];
                       // Add code to display results for each website in the UI
                       if (response.success) {
-                        let tableRow = `
+                        for (let j = 0; j < response.products.length; j++) {
+                          let product = response.products[j];
+
+                          let tableRow = `
                                         <tr>
                                           <td>${response.websiteName}</td>
-                                          <td>${response.prod_price?.replace(
+                                          <td>${product.prod_price?.replace(
                                             /\n/g,
                                             "<br/>"
                                           )}</td>
                                           <td>
                                             <img
-                                              src="${response.img_link}"
+                                              src="${product.img_link}"
                                               alt="/in/muhammad-zaeem-khan"
                                               style="width: 100px; height: 100px;"
                                             />
                                           </td>
                                           <td>
                                             <a href="${
-                                              response.product_link
+                                              product.product_link
                                             }" target="_blank">View Product</a>
                                           </td>
                                         </tr>
                                       `;
-                        $("#url-search-response").removeClass("d-none");
-                        $("#all-search-response")
-                          .removeClass("d-none")
-                          .append(tableRow);
+                          $("#url-search-response").removeClass("d-none");
+                          $("#all-search-response")
+                            .removeClass("d-none")
+                            .append(tableRow);
+                        }
                       }
                     }
                   }

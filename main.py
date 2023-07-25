@@ -269,8 +269,8 @@ def root():
 @app.post("/by-website-name", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
 async def find_by_website_name(webName: str = Body(), id: str = Body()):
     try:
-        if " " in id:
-            return {"success": False, "error": "Enter correct input"}
+        # if " " in id:
+        #     return {"success": False, "error": "Enter correct input"}
 
         if validators.url(id):
             return {"success": False, "error": "Only id is acceptable"}
@@ -612,7 +612,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                             '//div[contains(@class,"table-responsive search-result-vin search-catalog")]',
                         )
 
-                        if li and len(li) > 0:
+                        if len(li) > 0:
                             item = li[0]
                             img_link = item.find_element(
                                 By.XPATH, "./*/*/tr[2]/td[1]/img"
@@ -639,7 +639,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                             '//div[contains(@class,"product-col list clearfix")]',
                         )
 
-                        if li and len(li) > 0:
+                        if len(li) > 0:
                             item = li[0]
                             img_link = item.find_element(
                                 By.XPATH, "./*/div[1]/*/a"
@@ -712,7 +712,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                             By.XPATH, '//a[contains(@class,"search-card-item")]'
                         )
 
-                        if li and len(li) > 0:
+                        if len(li) > 0:
                             item = li[0]
 
                             href_link = item.get_attribute("href")
@@ -795,25 +795,25 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                     try:
                         li = browser.find_elements(
                             By.XPATH,
-                            '//div[contains(@class, "s-card-container")]',
+                            '//div[@class="a-section a-spacing-base" and @class !="a-section a-spacing-base a-spacing-top-base"]',
                         )
 
-                        if li and len(li) > 0:
+                        if len(li) > 0:
                             item = li[1]
 
                             href_link = item.find_element(
                                 By.XPATH,
-                                "./*/div[1]/*/a",
+                                "./div[1]/*/a",
                             ).get_attribute("href")
 
                             img_link = item.find_element(
                                 By.XPATH,
-                                "./*/div[1]/*/a/*/img",
+                                "./div[1]/*/a/*/img",
                             ).get_attribute("src")
 
                             prod_price = item.find_element(
                                 By.XPATH,
-                                "./*/div[2]",
+                                "./div[2]",
                             ).text
 
                             # prod_price = prod_price[0].text
@@ -832,6 +832,47 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                                 # "prod_title": prod_title,
                                 "product_link": href_link,
                             }
+
+                        li = browser.find_elements(
+                            By.XPATH,
+                            '//div[contains(@class, "s-card-container")]',
+                        )
+
+                        if len(li) > 0:
+                            item = li[1]
+
+                            href_link = item.find_element(
+                                By.XPATH,
+                                "./*/*/div[1]/*/div[2]/*/*/a",
+                            ).get_attribute("href")
+
+                            img_link = item.find_element(
+                                By.XPATH,
+                                "./*/*/div[1]/*/div[2]/*/*/a/*/img",
+                            ).get_attribute("src")
+
+                            prod_price = item.find_element(
+                                By.XPATH,
+                                "./*/*/div[2]/*/*/div[3]/div[1]/*/div[1]",
+                            ).text
+
+                            # prod_price = prod_price[0].text
+
+                            # prod_title = item.find_elements(
+                            #     By.XPATH,
+                            #     "./*/*/*/*/div[2]/div[contains(@class, 'a-section a-spacing-none a-spacing-top-small s-price-instructions-style')]",
+                            # )
+
+                            browser.quit()
+
+                            return {
+                                "success": True,
+                                "img_link": img_link,
+                                "prod_price": prod_price,
+                                # "prod_title": prod_title,
+                                "product_link": href_link,
+                            }
+
                         else:
                             browser.quit()
                             return {"success": False, "error": "Product not found. | 1"}
@@ -901,28 +942,47 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                             '//ul/li[contains(@class,"snize-product snize-product-in-stock")]',
                         )
 
-                        if li and len(li) > 0:
-                            item = li[0]
+                        if len(li) > 0:
+                            count = 0
+                            products = []
 
-                            href_link = item.find_element(
-                                By.XPATH, "./a"
-                            ).get_attribute("href")
+                            for item in li:
+                                try:
+                                    href_link = item.find_element(
+                                        By.XPATH, "./a"
+                                    ).get_attribute("href")
 
-                            img_link = item.find_element(
-                                By.XPATH, "./*/*/div/*/img"
-                            ).get_attribute("src")
+                                    img_link = item.find_element(
+                                        By.XPATH, "./*/*/div/*/img"
+                                    ).get_attribute("src")
 
-                            prod_price = item.find_element(
-                                By.XPATH, "./*/*/span/div"
-                            ).text
+                                    prod_price = item.find_element(
+                                        By.XPATH, "./*/*/span/div"
+                                    ).text
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "prod_price": prod_price,
+                                            "product_link": href_link,
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+
+                                    continue
 
                             browser.quit()
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "prod_price": prod_price,
-                                "product_link": href_link,
-                            }
+
+                            return {"success": True, "products": products}
+
                         else:
                             browser.quit()
                             return {"success": False, "error": "Product not found. | 1"}
@@ -978,32 +1038,50 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                             '//ul/li[contains(@class,"s-item__pl-on-bottom")]',
                         )
 
-                        if li and len(li) > 0:
-                            item = li[0]
+                        if len(li) > 0:
+                            count = 0
+                            products = []
 
-                            href_link = item.find_element(
-                                By.XPATH,
-                                "./*/div[1]/*/a",
-                            ).get_attribute("href")
+                            for item in li:
+                                try:
+                                    href_link = item.find_element(
+                                        By.XPATH,
+                                        "./*/div[1]/*/a",
+                                    ).get_attribute("href")
 
-                            img_link = item.find_element(
-                                By.XPATH,
-                                "./*/div[1]/*/a/*/img",
-                            ).get_attribute("src")
+                                    img_link = item.find_element(
+                                        By.XPATH,
+                                        "./*/div[1]/*/a/*/img",
+                                    ).get_attribute("src")
 
-                            prod_price = item.find_element(
-                                By.XPATH,
-                                './*/div[2]/div[contains(@class, "s-item__details")]/div[1]/span',
-                            ).text
-                            
+                                    prod_price = item.find_element(
+                                        By.XPATH,
+                                        './*/div[2]/div[contains(@class, "s-item__details")]/div[1]/span',
+                                    ).text
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "prod_price": prod_price,
+                                            "product_link": href_link,
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+
+                                    continue
 
                             browser.quit()
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "prod_price": prod_price,
-                                "product_link": href_link,
-                            }
+
+                            return {"success": True, "products": products}
+
                         else:
                             browser.quit()
                             return {"success": False, "error": "Product not found. | 1"}
@@ -1093,36 +1171,54 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                             By.XPATH, '//div[contains(@class,"product-card-container")]'
                         )
 
-                        if li and len(li) > 0:
-                            item = li[0]
+                        if len(li) > 0:
+                            count = 0
+                            products = []
 
-                            href_link = item.find_element(
-                                By.XPATH, "./*/div[1]/a"
-                            ).get_attribute("href")
+                            for item in li:
+                                try:
+                                    href_link = item.find_element(
+                                        By.XPATH, "./*/div[1]/a"
+                                    ).get_attribute("href")
 
-                            img_link = item.find_element(
-                                By.XPATH, "./*/div[1]/a/div"
-                            ).get_attribute("style")
+                                    img_link = item.find_element(
+                                        By.XPATH, "./*/div[1]/a/div"
+                                    ).get_attribute("style")
 
-                            img_link = (
-                                img_link.replace("background-image: url(", "")
-                                .replace('"', "")
-                                .replace(")", "")
-                                .replace(";", "")
-                            )
+                                    img_link = (
+                                        img_link.replace("background-image: url(", "")
+                                        .replace('"', "")
+                                        .replace(")", "")
+                                        .replace(";", "")
+                                    )
 
-                            prod_price = item.find_element(
-                                By.XPATH, "./*/div[2]/*/div[1]/*/div[1]/*"
-                            ).text
+                                    prod_price = item.find_element(
+                                        By.XPATH, "./*/div[2]/*/div[1]/*/div[1]/*"
+                                    ).text
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "prod_price": prod_price,
+                                            "product_link": href_link,
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+
+                                    continue
 
                             browser.quit()
-                            
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "prod_price": prod_price,
-                                "product_link": href_link,
-                            }
+
+                            return {"success": True, "products": products}
+
                         else:
                             browser.quit()
                             return {"success": False, "error": "Product not found. | 1"}
@@ -1155,50 +1251,86 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                             '//div[contains(@class,"table-responsive search-result-vin search-catalog")]',
                         )
 
-                        if li and len(li) > 0:
-                            item = li[0]
+                        if len(li) > 0:
+                            count = 0
+                            products = []
 
-                            img_link = item.find_element(
-                                By.XPATH, "./*/*/tr[2]/td[1]/img"
-                            ).get_attribute("src")
+                            for item in li:
+                                try:
+                                    img_link = item.find_element(
+                                        By.XPATH, "./*/*/tr[2]/td[1]/img"
+                                    ).get_attribute("src")
 
-                            product_link = browser.current_url
+                                    href_link = browser.current_url
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "product_link": href_link,
+                                            "prod_price": "",
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+
+                                    continue
 
                             browser.quit()
 
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "product_link": product_link,
-                                "prod_price": "",
-                            }
+                            return {"success": True, "products": products}
 
                         li = browser.find_elements(
                             By.XPATH,
                             '//div[contains(@class,"product-col list clearfix")]',
                         )
 
-                        if li and len(li) > 0:
-                            item = li[0]
+                        if len(li) > 0:
+                            count = 0
 
-                            img_link = item.find_element(
-                                By.XPATH, "./*/div[1]/*/a"
-                            ).get_attribute("href")
+                            products = []
 
-                            prod_price = item.find_element(
-                                By.XPATH, "./*/div[3]/*/div[2]/*/span"
-                            ).text
+                            for item in li:
+                                try:
+                                    img_link = item.find_element(
+                                        By.XPATH, "./*/div[1]/*/a"
+                                    ).get_attribute("href")
 
-                            product_link = browser.current_url
+                                    prod_price = item.find_element(
+                                        By.XPATH, "./*/div[3]/*/div[2]/*/span"
+                                    ).text
+
+                                    href_link = browser.current_url
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "product_link": href_link,
+                                            "prod_price": "",
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+
+                                    continue
 
                             browser.quit()
 
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "prod_price": prod_price,
-                                "product_link": product_link,
-                            }
+                            return {"success": True, "products": products}
+
                         else:
                             browser.quit()
                             return {"success": False, "error": "Product not found. | 1"}
@@ -1230,7 +1362,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             search_button.click()
 
             browser.implicitly_wait(5)
-            sleep(5)
+            sleep(3)
 
             if browser.title == "Just a moment...":
                 return {"success": False, "error": "Cloudfare blockage"}
@@ -1243,32 +1375,50 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                             By.XPATH, '//a[contains(@class,"search-card-item")]'
                         )
 
-                        if li and len(li) > 0:
-                            item = li[0]
+                        if len(li) > 0:
+                            count = 0
+                            products = []
 
-                            href_link = item.get_attribute("href")
+                            for item in li:
+                                try:
+                                    href_link = item.get_attribute("href")
 
-                            img_link = item.find_element(
-                                By.XPATH,
-                                "./div[1]/img",
-                            ).get_attribute("src")
+                                    img_link = item.find_element(
+                                        By.XPATH,
+                                        "./div[1]/img",
+                                    ).get_attribute("src")
 
-                            prod_price = item.find_element(
-                                By.XPATH,
-                                "./div[2]/div[1]",
-                            ).text
+                                    prod_price = item.find_element(
+                                        By.XPATH,
+                                        "./div[2]/div[1]",
+                                    ).text
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "prod_price": prod_price,
+                                            "product_link": href_link,
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 3:
+                                        break
+
+                                    continue
 
                             browser.quit()
 
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "prod_price": prod_price,
-                                "product_link": href_link,
-                            }
+                            return {"success": True, "products": products}
                         else:
                             browser.quit()
                             return {"success": False, "error": "Product not found. | 1"}
+
                     except Exception as e:
                         browser.quit()
                         return {
@@ -1298,38 +1448,114 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                     try:
                         li = browser.find_elements(
                             By.XPATH,
+                            '//div[@class="a-section a-spacing-base" and @class !="a-section a-spacing-base a-spacing-top-base"]',
+                        )
+
+                        if len(li) > 0:
+                            count = 0
+
+                            products = []
+
+                            for item in li:
+                                if count == 0:
+                                    count = count + 1
+                                    continue
+
+                                try:
+                                    href_link = item.find_element(
+                                        By.XPATH,
+                                        "./*/div[1]/*/a",
+                                    ).get_attribute("href")
+
+                                    img_link = item.find_element(
+                                        By.XPATH,
+                                        "./*/div[1]/*/a/*/img",
+                                    ).get_attribute("src")
+
+                                    prod_price = item.find_element(
+                                        By.XPATH,
+                                        "./*/div[2]",
+                                    ).text
+
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "prod_price": prod_price,
+                                            "product_link": href_link,
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 4:
+                                        break
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 4:
+                                        break
+
+                                    continue
+
+                            browser.quit()
+
+                            return {"success": True, "products": products}
+
+                        li = browser.find_elements(
+                            By.XPATH,
                             '//div[contains(@class, "s-card-container")]',
                         )
 
-                        if li and len(li) > 0:
-                            item = li[1]
+                        if len(li) > 0:
+                            count = 0
 
-                            href_link = item.find_element(
-                                By.XPATH,
-                                "./*/div[1]/*/a",
-                            ).get_attribute("href")
+                            products = []
 
-                            img_link = item.find_element(
-                                By.XPATH,
-                                "./*/div[1]/*/a/*/img",
-                            ).get_attribute("src")
+                            for item in li:
+                                if count == 0:
+                                    count = count + 1
+                                    continue
 
-                            prod_price = item.find_element(
-                                By.XPATH,
-                                "./*/div[2]",
-                            ).text
+                                try:
+                                    href_link = item.find_element(
+                                        By.XPATH,
+                                        "./*/*/div[1]/*/div[2]/*/*/a",
+                                    ).get_attribute("href")
+
+                                    img_link = item.find_element(
+                                        By.XPATH,
+                                        "./*/*/div[1]/*/div[2]/*/*/a/*/img",
+                                    ).get_attribute("src")
+
+                                    prod_price = item.find_element(
+                                        By.XPATH,
+                                        "./*/*/div[2]/*/*/div[3]/div[1]/*/div[1]",
+                                    ).text
+                                    products.append(
+                                        {
+                                            "success": True,
+                                            "img_link": img_link,
+                                            "prod_price": prod_price,
+                                            "product_link": href_link,
+                                        }
+                                    )
+
+                                    count = count + 1
+                                    if count == 4:
+                                        break
+
+                                except Exception as e:
+                                    count = count + 1
+                                    if count == 4:
+                                        break
+
+                                    continue
 
                             browser.quit()
 
-                            return {
-                                "success": True,
-                                "img_link": img_link,
-                                "prod_price": prod_price,
-                                "product_link": href_link,
-                            }
-                        else:
-                            browser.quit()
-                            return {"success": False, "error": "Product not found. | 1"}
+                            return {"success": True, "products": products}
+
+                        browser.quit()
+                        return {"success": False, "error": "Product not found. | 1"}
 
                     except Exception as e:
                         browser.quit()
