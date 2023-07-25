@@ -788,32 +788,32 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
-                            '//div[contains(@class, "s-main-slot s-result-list s-search-results sg-row")]',
+                            '//div[contains(@class, "s-result-list s-search-results")]',
                         )
                     )
                 ):
                     try:
                         li = browser.find_elements(
                             By.XPATH,
-                            '//div[contains(@data-component-type, "s-search-result")]',
+                            '//div[contains(@class, "s-card-container")]',
                         )
 
                         if li and len(li) > 0:
-                            item = li[0]
+                            item = li[1]
 
                             href_link = item.find_element(
                                 By.XPATH,
-                                "./*/*/*/*/div[1]/*/a",
+                                "./*/div[1]/*/a",
                             ).get_attribute("href")
 
                             img_link = item.find_element(
                                 By.XPATH,
-                                "./*/*/*/*/div[1]/*/a/*/img",
+                                "./*/div[1]/*/a/*/img",
                             ).get_attribute("src")
 
                             prod_price = item.find_element(
                                 By.XPATH,
-                                "./*/*/*/*/div[2]",
+                                "./*/div[2]",
                             ).text
 
                             # prod_price = prod_price[0].text
@@ -852,14 +852,12 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
     except Exception as e:
         return {"success": False, "error": "unable to process req", "e": e}
 
+
 @app.post("/all-search", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
 async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
     try:
-        if " " in id:
-            return {"success": False, "error": "Enter correct input"}
-
         if validators.url(id):
-            return {"success": False, "error": "Only id is acceptable"}
+            return {"success": False, "error": "Only correct input is acceptable"}
 
         browser = browser_script()
 
@@ -882,8 +880,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 sleep(3)
 
                 if browser.title == "Just a moment...":
-                    # browser.get(browser.current_url)
-                    # browser.implicitly_wait(5)
                     browser.quit()
                     return {"success": False, "error": "Cloudfare blockage"}
             except Exception as e:
@@ -920,15 +916,10 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                                 By.XPATH, "./*/*/span/div"
                             ).text
 
-                            prod_title = item.find_element(
-                                By.XPATH, "./*/*/span/span"
-                            ).text
-
                             browser.quit()
                             return {
                                 "success": True,
                                 "img_link": img_link,
-                                "prod_title": prod_title,
                                 "prod_price": prod_price,
                                 "product_link": href_link,
                             }
@@ -953,6 +944,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 search_box = browser.find_element(
                     By.CLASS_NAME, "ui-autocomplete-input"
                 )
+
                 search_box.send_keys(id)
 
                 sleep(1)
@@ -964,8 +956,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 sleep(3)
 
                 if browser.title == "Just a moment...":
-                    # browser.get(browser.current_url)
-                    # browser.implicitly_wait(5)
                     browser.quit()
                     return {"success": False, "error": "Cloudfare blockage"}
 
@@ -990,28 +980,27 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
                         if li and len(li) > 0:
                             item = li[0]
+
                             href_link = item.find_element(
                                 By.XPATH,
                                 "./*/div[1]/*/a",
                             ).get_attribute("href")
+
                             img_link = item.find_element(
                                 By.XPATH,
                                 "./*/div[1]/*/a/*/img",
                             ).get_attribute("src")
+
                             prod_price = item.find_element(
                                 By.XPATH,
                                 './*/div[2]/div[contains(@class, "s-item__details")]/div[1]/span',
                             ).text
-                            prod_title = item.find_element(
-                                By.XPATH,
-                                "./*/div[2]/a/div/span",
-                            ).text
+                            
 
                             browser.quit()
                             return {
                                 "success": True,
                                 "img_link": img_link,
-                                "prod_title": prod_title,
                                 "prod_price": prod_price,
                                 "product_link": href_link,
                             }
@@ -1090,21 +1079,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
         elif webName == "www.partzilla.com":
             web = f"https://www.partzilla.com/search?q={id}&ui=typeahead"
 
-            # browser.get(web)
-            # browser.implicitly_wait(5)
-
-            # search_box = browser.find_element(By.CLASS_NAME, "search-input")
-            # search_box.send_keys(id)
-
-            # sleep(3)
-
-            # search_button = browser.find_element(By.CLASS_NAME, "search-button")
-            # search_button.click()
-
-            # browser.implicitly_wait(5)
-            # sleep(3)
-
-            # if browser.title == "Just a moment...":
             browser.get(web)
             browser.implicitly_wait(5)
 
@@ -1121,9 +1095,11 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
                         if li and len(li) > 0:
                             item = li[0]
+
                             href_link = item.find_element(
                                 By.XPATH, "./*/div[1]/a"
                             ).get_attribute("href")
+
                             img_link = item.find_element(
                                 By.XPATH, "./*/div[1]/a/div"
                             ).get_attribute("style")
@@ -1139,15 +1115,11 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                                 By.XPATH, "./*/div[2]/*/div[1]/*/div[1]/*"
                             ).text
 
-                            prod_title = item.find_element(
-                                By.XPATH, "./*/div[1]/div/a"
-                            ).text
-
                             browser.quit()
+                            
                             return {
                                 "success": True,
                                 "img_link": img_link,
-                                "prod_title": prod_title,
                                 "prod_price": prod_price,
                                 "product_link": href_link,
                             }
@@ -1168,21 +1140,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
         elif webName == "partsouq.com":
             web = f"https://partsouq.com/en/search/all?q={id}"
 
-            # browser.get(web)
-            # browser.implicitly_wait(5)
-
-            # search_box = browser.find_element(By.XPATH, "//input[@name='q']")
-            # search_box.send_keys(id)
-
-            # sleep(3)
-
-            # search_button = browser.find_element(
-            #     By.XPATH, '//button[contains(@class,"btn btn-success btn-sm")]'
-            # )
-            # search_button.click()
-
-            # if browser.title == "Just a moment...":
-
             browser.get(web)
             browser.implicitly_wait(2)
 
@@ -1200,12 +1157,10 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
                         if li and len(li) > 0:
                             item = li[0]
+
                             img_link = item.find_element(
                                 By.XPATH, "./*/*/tr[2]/td[1]/img"
                             ).get_attribute("src")
-                            prod_title = item.find_element(
-                                By.XPATH, "./*/div[3]/*/div[2]/*/span"
-                            ).text
 
                             product_link = browser.current_url
 
@@ -1214,9 +1169,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                             return {
                                 "success": True,
                                 "img_link": img_link,
-                                "prod_title": prod_title,
                                 "product_link": product_link,
-                                "prod_discription": "",
                                 "prod_price": "",
                             }
 
@@ -1227,14 +1180,13 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
                         if li and len(li) > 0:
                             item = li[0]
+
                             img_link = item.find_element(
                                 By.XPATH, "./*/div[1]/*/a"
                             ).get_attribute("href")
+
                             prod_price = item.find_element(
                                 By.XPATH, "./*/div[3]/*/div[2]/*/span"
-                            ).text
-                            prod_title = item.find_element(
-                                By.XPATH, "./*/div[2]/*/h1"
                             ).text
 
                             product_link = browser.current_url
@@ -1245,9 +1197,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                                 "success": True,
                                 "img_link": img_link,
                                 "prod_price": prod_price,
-                                "prod_title": prod_title,
                                 "product_link": product_link,
-                                "prod_discription": "",
                             }
                         else:
                             browser.quit()
@@ -1283,11 +1233,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             sleep(5)
 
             if browser.title == "Just a moment...":
-                # url = browser.current_url
-                # browser.quit()
-                # sleep(1)
-                # browser.get(url)
-                # browser.implicitly_wait(5)
                 return {"success": False, "error": "Cloudfare blockage"}
             try:
                 if wait(browser, 10).until(
@@ -1313,17 +1258,12 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                                 "./div[2]/div[1]",
                             ).text
 
-                            prod_title = item.find_element(
-                                By.XPATH,
-                                "./div[2]/div[4]/*",
-                            ).text
                             browser.quit()
 
                             return {
                                 "success": True,
                                 "img_link": img_link,
                                 "prod_price": prod_price,
-                                "prod_title": prod_title,
                                 "product_link": href_link,
                             }
                         else:
@@ -1342,29 +1282,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
         elif webName == "amazon.com":
             web = f"https://www.amazon.com/s?k={id}"
-            # web = "https://www.amazon.com"
-
-            # browser.get(web)
-            # browser.implicitly_wait(5)
-
-            # search_box = browser.find_element(By.ID, "twotabsearchtextbox")
-            # search_box.send_keys(id)
-
-            # sleep(1)
-
-            # search_button = browser.find_element(By.ID, "nav-search-submit-button")
-            # search_button.click()
-
-            # browser.implicitly_wait(5)
-            # sleep(3)
-
-            # if browser.title == "Just a moment...":
-            #     # url = browser.current_url
-            #     # browser.quit()
-            #     # sleep(3)
-            #     # browser.get(url)
-            #     # browser.implicitly_wait(5)
-            #     return {"success": False, "error": "Cloudfare blockage"}
 
             browser.get(web)
             browser.implicitly_wait(5)
@@ -1374,40 +1291,33 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
-                            '//div[contains(@class, "s-main-slot s-result-list s-search-results sg-row")]',
+                            '//div[contains(@class, "s-result-list s-search-results")]',
                         )
                     )
                 ):
                     try:
                         li = browser.find_elements(
                             By.XPATH,
-                            '//div[contains(@data-component-type, "s-search-result")]',
+                            '//div[contains(@class, "s-card-container")]',
                         )
 
                         if li and len(li) > 0:
-                            item = li[0]
+                            item = li[1]
 
                             href_link = item.find_element(
                                 By.XPATH,
-                                "./*/*/*/*/div[1]/*/a",
+                                "./*/div[1]/*/a",
                             ).get_attribute("href")
 
                             img_link = item.find_element(
                                 By.XPATH,
-                                "./*/*/*/*/div[1]/*/a/*/img",
+                                "./*/div[1]/*/a/*/img",
                             ).get_attribute("src")
 
                             prod_price = item.find_element(
                                 By.XPATH,
-                                "./*/*/*/*/div[2]",
+                                "./*/div[2]",
                             ).text
-
-                            # prod_price = prod_price[0].text
-
-                            # prod_title = item.find_elements(
-                            #     By.XPATH,
-                            #     "./*/*/*/*/div[2]/div[contains(@class, 'a-section a-spacing-none a-spacing-top-small s-price-instructions-style')]",
-                            # )
 
                             browser.quit()
 
@@ -1415,7 +1325,6 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                                 "success": True,
                                 "img_link": img_link,
                                 "prod_price": prod_price,
-                                # "prod_title": prod_title,
                                 "product_link": href_link,
                             }
                         else:

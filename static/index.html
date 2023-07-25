@@ -295,8 +295,8 @@
                 $("#search-button").removeClass("d-none");
 
                 // Handle the error response here
-                console.error("Error in find", error);
-                alert("Error in server!");
+                console.error("Error in by-url", error);
+                alert(`Error in server! ${error.responseText}`);
               },
             });
           } else if (selectedWebName == "all-search") {
@@ -346,20 +346,27 @@
                       let response = allSearchResponses[i];
                       // Add code to display results for each website in the UI
                       if (response.success) {
-                        let tableRow = `<tr>
-                                            <td>${response.websiteName}</td>
-                                            <td>${response.prod_price?.replace(
-                                              /\n/g,
-                                              "<br/>"
-                                            )}</td>
-                                            <td>${response.prod_title?.replace(
-                                              /\n/g,
-                                              "<br/>"
-                                            )}</td>
-                                            <td><a href="${
+                        let tableRow = `
+                                        <tr>
+                                          <td>${response.websiteName}</td>
+                                          <td>${response.prod_price?.replace(
+                                            /\n/g,
+                                            "<br/>"
+                                          )}</td>
+                                          <td>
+                                            <img
+                                              src="${response.img_link}"
+                                              alt="/in/muhammad-zaeem-khan"
+                                              style="width: 100px; height: 100px;"
+                                            />
+                                          </td>
+                                          <td>
+                                            <a href="${
                                               response.product_link
-                                            }" target="_blank">View Product</a></td>
-                                        </tr>`;
+                                            }" target="_blank">View Product</a>
+                                          </td>
+                                        </tr>
+                                      `;
                         $("#url-search-response").removeClass("d-none");
                         $("#all-search-response")
                           .removeClass("d-none")
@@ -371,7 +378,7 @@
                 error: function (error) {
                   // Handle the error response here
                   console.error("Error in all-search", error);
-                  aler("Error in server");
+                  alert(`Error in server! ${error.responseText}`);
                   // Check if all API calls have been completed
                   // if (allSearchResponses.length === websiteUrls.length) {
                   //   // Hide the loader and show the button
@@ -450,8 +457,8 @@
                 $("#search-button").removeClass("d-none");
 
                 // Handle the error response here
-                console.error("Error in find", error);
-                alert("Error in server!");
+                console.error("Error in by-website-name", error);
+                alert(`Error in server! ${error.responseText}`);
               },
             });
           }
