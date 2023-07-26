@@ -895,7 +895,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
 
 
 @app.post("/all-search", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
+def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
     try:
         if validators.url(id):
             return {"success": False, "error": "Only correct input is acceptable"}
