@@ -10,6 +10,7 @@
 # pip3 install sqlalchemy
 
 # ?check_same_thread=False
+import json
 
 from fastapi import FastAPI, Body, Depends, Request, Response, Form
 
@@ -69,9 +70,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def browser_script():
-    browser = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()), options=chrome_options
-    )
+    browser = webdriver.Chrome("chromedriver", options=chrome_options)
 
     browser.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument",
@@ -230,19 +229,6 @@ def browser_script():
     )
 
     return browser
-
-
-# def get_db():
-#     """
-#     Method to generate database session
-#     :return: Session
-#     """
-#     db = None
-#     try:
-#         db = Session()
-#         yield db
-#     finally:
-#         db.close()
 
 
 @app.middleware("http")
@@ -795,7 +781,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                     try:
                         li = browser.find_elements(
                             By.XPATH,
-                            '//div[@class="a-section a-spacing-base" and @class !="a-section a-spacing-base a-spacing-top-base"]',
+                            '//div[@class="a-section a-spacing-base"]/ancestor::div[contains(@class, "s-card-border")]',
                         )
 
                         if len(li) > 0:
@@ -803,17 +789,17 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
 
                             href_link = item.find_element(
                                 By.XPATH,
-                                "./div[1]/*/a",
+                                "./*/div[1]/*/a",
                             ).get_attribute("href")
 
                             img_link = item.find_element(
                                 By.XPATH,
-                                "./div[1]/*/a/*/img",
+                                "./*/div[1]/*/a/*/img",
                             ).get_attribute("src")
 
                             prod_price = item.find_element(
                                 By.XPATH,
-                                "./div[2]",
+                                "./*/div[2]",
                             ).text
 
                             # prod_price = prod_price[0].text
@@ -895,7 +881,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
 
 
 @app.post("/all-search", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
+async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
     try:
         if validators.url(id):
             return {"success": False, "error": "Only correct input is acceptable"}
@@ -1448,7 +1434,7 @@ def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
                     try:
                         li = browser.find_elements(
                             By.XPATH,
-                            '//div[@class="a-section a-spacing-base" and @class !="a-section a-spacing-base a-spacing-top-base"]',
+                            '//div[@class="a-section a-spacing-base"]/ancestor::div[contains(@class, "s-card-border")]',
                         )
 
                         if len(li) > 0:
@@ -1914,6 +1900,27 @@ async def find_by_url(url: str = Form()):
 
     else:
         return {"success": False, "error": "Website template is not set"}
+
+
+@app.post("/test", tags=["test"])
+async def find_by_url(data: str = Body()):
+    browser = browser_script()
+
+    try:
+        if not validators.url(json.loads(data)["url"]):
+            browser.quit()
+            return {"success": False, "error": "Enter correct input"}
+
+        browser.get(json.loads(data)["url"])
+        browser.implicitly_wait(5)
+
+        title = browser.title
+
+        browser.quit()
+        return {"success": True, "title": title}
+    except Exception as e:
+        browser.quit()
+        return {"success": False, "error": e, "url": json.loads(data)["url"]}
 
 
 @app.post("/signup", tags=["user"])
