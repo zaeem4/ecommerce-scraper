@@ -70,163 +70,164 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def browser_script():
-    browser = webdriver.Chrome("chromedriver", options=chrome_options)
+    ser = Service("/usr/bin/chromedriver")
+    browser = webdriver.Chrome(service=ser, options=chrome_options)
 
-    browser.execute_cdp_cmd(
-        "Page.addScriptToEvaluateOnNewDocument",
-        {
-            "source": """
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined
-        });
-        Object.defineProperty(navigator, 'plugins', {
-                get: function() { return {"0":{"0":{}},"1":{"0":{}},"2":{"0":{},"1":{}}}; }
-        });
-        Object.defineProperty(navigator, 'languages', {
-            get: () => ["en-US", "en"]
-        });
-        Object.defineProperty(navigator, 'mimeTypes', {
-            get: function() { return {"0":{},"1":{},"2":{},"3":{}}; }
-        });
+    # browser.execute_cdp_cmd(
+    #     "Page.addScriptToEvaluateOnNewDocument",
+    #     {
+    #         "source": """
+    #     Object.defineProperty(navigator, 'webdriver', {
+    #         get: () => undefined
+    #     });
+    #     Object.defineProperty(navigator, 'plugins', {
+    #             get: function() { return {"0":{"0":{}},"1":{"0":{}},"2":{"0":{},"1":{}}}; }
+    #     });
+    #     Object.defineProperty(navigator, 'languages', {
+    #         get: () => ["en-US", "en"]
+    #     });
+    #     Object.defineProperty(navigator, 'mimeTypes', {
+    #         get: function() { return {"0":{},"1":{},"2":{},"3":{}}; }
+    #     });
 
-        window.screenY=23;
-        window.screenTop=23;
-        window.outerWidth=1337;
-        window.outerHeight=825;
-        window.chrome =
-        {
-        app: {
-            isInstalled: false,
-        },
-        webstore: {
-            onInstallStageChanged: {},
-            onDownloadProgress: {},
-        },
-        runtime: {
-            PlatformOs: {
-            MAC: 'mac',
-            WIN: 'win',
-            ANDROID: 'android',
-            CROS: 'cros',
-            LINUX: 'linux',
-            OPENBSD: 'openbsd',
-            },
-            PlatformArch: {
-            ARM: 'arm',
-            X86_32: 'x86-32',
-            X86_64: 'x86-64',
-            },
-            PlatformNaclArch: {
-            ARM: 'arm',
-            X86_32: 'x86-32',
-            X86_64: 'x86-64',
-            },
-            RequestUpdateCheckStatus: {
-            THROTTLED: 'throttled',
-            NO_UPDATE: 'no_update',
-            UPDATE_AVAILABLE: 'update_available',
-            },
-            OnInstalledReason: {
-            INSTALL: 'install',
-            UPDATE: 'update',
-            CHROME_UPDATE: 'chrome_update',
-            SHARED_MODULE_UPDATE: 'shared_module_update',
-            },
-            OnRestartRequiredReason: {
-            APP_UPDATE: 'app_update',
-            OS_UPDATE: 'os_update',
-            PERIODIC: 'periodic',
-            },
-        },
-        };
-        window.navigator.chrome =
-        {
-        app: {
-            isInstalled: false,
-        },
-        webstore: {
-            onInstallStageChanged: {},
-            onDownloadProgress: {},
-        },
-        runtime: {
-            PlatformOs: {
-            MAC: 'mac',
-            WIN: 'win',
-            ANDROID: 'android',
-            CROS: 'cros',
-            LINUX: 'linux',
-            OPENBSD: 'openbsd',
-            },
-            PlatformArch: {
-            ARM: 'arm',
-            X86_32: 'x86-32',
-            X86_64: 'x86-64',
-            },
-            PlatformNaclArch: {
-            ARM: 'arm',
-            X86_32: 'x86-32',
-            X86_64: 'x86-64',
-            },
-            RequestUpdateCheckStatus: {
-            THROTTLED: 'throttled',
-            NO_UPDATE: 'no_update',
-            UPDATE_AVAILABLE: 'update_available',
-            },
-            OnInstalledReason: {
-            INSTALL: 'install',
-            UPDATE: 'update',
-            CHROME_UPDATE: 'chrome_update',
-            SHARED_MODULE_UPDATE: 'shared_module_update',
-            },
-            OnRestartRequiredReason: {
-            APP_UPDATE: 'app_update',
-            OS_UPDATE: 'os_update',
-            PERIODIC: 'periodic',
-            },
-        },
-        };
-        ['height', 'width'].forEach(property => {
-            const imageDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, property);
+    #     window.screenY=23;
+    #     window.screenTop=23;
+    #     window.outerWidth=1337;
+    #     window.outerHeight=825;
+    #     window.chrome =
+    #     {
+    #     app: {
+    #         isInstalled: false,
+    #     },
+    #     webstore: {
+    #         onInstallStageChanged: {},
+    #         onDownloadProgress: {},
+    #     },
+    #     runtime: {
+    #         PlatformOs: {
+    #         MAC: 'mac',
+    #         WIN: 'win',
+    #         ANDROID: 'android',
+    #         CROS: 'cros',
+    #         LINUX: 'linux',
+    #         OPENBSD: 'openbsd',
+    #         },
+    #         PlatformArch: {
+    #         ARM: 'arm',
+    #         X86_32: 'x86-32',
+    #         X86_64: 'x86-64',
+    #         },
+    #         PlatformNaclArch: {
+    #         ARM: 'arm',
+    #         X86_32: 'x86-32',
+    #         X86_64: 'x86-64',
+    #         },
+    #         RequestUpdateCheckStatus: {
+    #         THROTTLED: 'throttled',
+    #         NO_UPDATE: 'no_update',
+    #         UPDATE_AVAILABLE: 'update_available',
+    #         },
+    #         OnInstalledReason: {
+    #         INSTALL: 'install',
+    #         UPDATE: 'update',
+    #         CHROME_UPDATE: 'chrome_update',
+    #         SHARED_MODULE_UPDATE: 'shared_module_update',
+    #         },
+    #         OnRestartRequiredReason: {
+    #         APP_UPDATE: 'app_update',
+    #         OS_UPDATE: 'os_update',
+    #         PERIODIC: 'periodic',
+    #         },
+    #     },
+    #     };
+    #     window.navigator.chrome =
+    #     {
+    #     app: {
+    #         isInstalled: false,
+    #     },
+    #     webstore: {
+    #         onInstallStageChanged: {},
+    #         onDownloadProgress: {},
+    #     },
+    #     runtime: {
+    #         PlatformOs: {
+    #         MAC: 'mac',
+    #         WIN: 'win',
+    #         ANDROID: 'android',
+    #         CROS: 'cros',
+    #         LINUX: 'linux',
+    #         OPENBSD: 'openbsd',
+    #         },
+    #         PlatformArch: {
+    #         ARM: 'arm',
+    #         X86_32: 'x86-32',
+    #         X86_64: 'x86-64',
+    #         },
+    #         PlatformNaclArch: {
+    #         ARM: 'arm',
+    #         X86_32: 'x86-32',
+    #         X86_64: 'x86-64',
+    #         },
+    #         RequestUpdateCheckStatus: {
+    #         THROTTLED: 'throttled',
+    #         NO_UPDATE: 'no_update',
+    #         UPDATE_AVAILABLE: 'update_available',
+    #         },
+    #         OnInstalledReason: {
+    #         INSTALL: 'install',
+    #         UPDATE: 'update',
+    #         CHROME_UPDATE: 'chrome_update',
+    #         SHARED_MODULE_UPDATE: 'shared_module_update',
+    #         },
+    #         OnRestartRequiredReason: {
+    #         APP_UPDATE: 'app_update',
+    #         OS_UPDATE: 'os_update',
+    #         PERIODIC: 'periodic',
+    #         },
+    #     },
+    #     };
+    #     ['height', 'width'].forEach(property => {
+    #         const imageDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, property);
 
-            // redefine the property with a patched descriptor
-            Object.defineProperty(HTMLImageElement.prototype, property, {
-                ...imageDescriptor,
-                get: function() {
-                    // return an arbitrary non-zero dimension if the image failed to load
-                if (this.complete && this.naturalHeight == 0) {
-                    return 20;
-                }
-                    return imageDescriptor.get.apply(this);
-                },
-            });
-        });
+    #         // redefine the property with a patched descriptor
+    #         Object.defineProperty(HTMLImageElement.prototype, property, {
+    #             ...imageDescriptor,
+    #             get: function() {
+    #                 // return an arbitrary non-zero dimension if the image failed to load
+    #             if (this.complete && this.naturalHeight == 0) {
+    #                 return 20;
+    #             }
+    #                 return imageDescriptor.get.apply(this);
+    #             },
+    #         });
+    #     });
 
-        const getParameter = WebGLRenderingContext.getParameter;
-        WebGLRenderingContext.prototype.getParameter = function(parameter) {
-            if (parameter === 37445) {
-                return 'Intel Open Source Technology Center';
-            }
-            if (parameter === 37446) {
-                return 'Mesa DRI Intel(R) Ivybridge Mobile ';
-            }
+    #     const getParameter = WebGLRenderingContext.getParameter;
+    #     WebGLRenderingContext.prototype.getParameter = function(parameter) {
+    #         if (parameter === 37445) {
+    #             return 'Intel Open Source Technology Center';
+    #         }
+    #         if (parameter === 37446) {
+    #             return 'Mesa DRI Intel(R) Ivybridge Mobile ';
+    #         }
 
-            return getParameter(parameter);
-        };
+    #         return getParameter(parameter);
+    #     };
 
-        const elementDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+    #     const elementDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
 
-        Object.defineProperty(HTMLDivElement.prototype, 'offsetHeight', {
-            ...elementDescriptor,
-            get: function() {
-                if (this.id === 'modernizr') {
-                return 1;
-                }
-                return elementDescriptor.get.apply(this);
-            },
-        });
-        """
-        },
-    )
+    #     Object.defineProperty(HTMLDivElement.prototype, 'offsetHeight', {
+    #         ...elementDescriptor,
+    #         get: function() {
+    #             if (this.id === 'modernizr') {
+    #             return 1;
+    #             }
+    #             return elementDescriptor.get.apply(this);
+    #         },
+    #     });
+    #     """
+    #     },
+    # )
 
     return browser
 
@@ -253,10 +254,10 @@ def root():
 
 
 @app.post("/by-website-name", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def find_by_website_name(webName: str = Body(), id: str = Body()):
+def find_by_website_name(webName: str = Body(), id: str = Body()):
     try:
-        # if " " in id:
-        #     return {"success": False, "error": "Enter correct input"}
+        if " " in id:
+            return {"success": False, "error": "Enter correct input"}
 
         if validators.url(id):
             return {"success": False, "error": "Only id is acceptable"}
@@ -268,7 +269,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                 web = "https://www2.cip1.com/"
 
                 browser.get(web)
-                browser.implicitly_wait(5)
+                browser.implicitly_wait(3)
 
                 search_box = browser.find_element(By.ID, "search_query")
                 search_box.send_keys(id)
@@ -278,12 +279,12 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                 search_button = browser.find_element(By.CLASS_NAME, "headersearch-icon")
                 search_button.click()
 
-                browser.implicitly_wait(5)
-                sleep(3)
+                browser.implicitly_wait(3)
+                sleep(2)
 
                 if browser.title == "Just a moment...":
                     # browser.get(browser.current_url)
-                    # browser.implicitly_wait(5)
+                    # browser.implicitly_wait(3)
                     browser.quit()
                     return {"success": False, "error": "Cloudfare blockage"}
             except Exception as e:
@@ -291,7 +292,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                 return {"success": False, "error": "product not found | 4", "e": e}
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -348,7 +349,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                 web = "https://www.ebay.com"
 
                 browser.get(web)
-                browser.implicitly_wait(5)
+                browser.implicitly_wait(3)
 
                 search_box = browser.find_element(
                     By.CLASS_NAME, "ui-autocomplete-input"
@@ -360,12 +361,12 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                 search_button = browser.find_element(By.ID, "gh-btn")
                 search_button.click()
 
-                browser.implicitly_wait(5)
-                sleep(3)
+                browser.implicitly_wait(3)
+                sleep(2)
 
                 if browser.title == "Just a moment...":
                     # browser.get(browser.current_url)
-                    # browser.implicitly_wait(5)
+                    # browser.implicitly_wait(3)
                     browser.quit()
                     return {"success": False, "error": "Cloudfare blockage"}
 
@@ -374,7 +375,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
                 return {"success": False, "error": "product not found | 4", "e": e}
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -428,7 +429,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
 
             except Exception as e:
                 try:
-                    if wait(browser, 10).until(
+                    if wait(browser, 5).until(
                         EC.presence_of_all_elements_located(
                             (
                                 By.XPATH,
@@ -491,25 +492,25 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             web = f"https://www.partzilla.com/search?q={id}&ui=typeahead"
 
             # browser.get(web)
-            # browser.implicitly_wait(5)
+            # browser.implicitly_wait(3)
 
             # search_box = browser.find_element(By.CLASS_NAME, "search-input")
             # search_box.send_keys(id)
 
-            # sleep(3)
+            # sleep(2)
 
             # search_button = browser.find_element(By.CLASS_NAME, "search-button")
             # search_button.click()
 
-            # browser.implicitly_wait(5)
-            # sleep(3)
+            # browser.implicitly_wait(3)
+            # sleep(2)
 
             # if browser.title == "Just a moment...":
             browser.get(web)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (By.XPATH, '//div[contains(@class, "product-cards")]')
                     )
@@ -569,12 +570,12 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             web = f"https://partsouq.com/en/search/all?q={id}"
 
             # browser.get(web)
-            # browser.implicitly_wait(5)
+            # browser.implicitly_wait(3)
 
             # search_box = browser.find_element(By.XPATH, "//input[@name='q']")
             # search_box.send_keys(id)
 
-            # sleep(3)
+            # sleep(2)
 
             # search_button = browser.find_element(
             #     By.XPATH, '//button[contains(@class,"btn btn-success btn-sm")]'
@@ -584,10 +585,10 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             # if browser.title == "Just a moment...":
 
             browser.get(web)
-            browser.implicitly_wait(2)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (By.XPATH, '//div[contains(@class, "search-result-container")]')
                     )
@@ -669,7 +670,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             web = "https://www.aliexpress.com"
 
             browser.get(web)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             search_box = browser.find_element(By.ID, "search-key")
             search_box.send_keys(id)
@@ -679,18 +680,18 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             search_button = browser.find_element(By.CLASS_NAME, "search-button")
             search_button.click()
 
-            browser.implicitly_wait(5)
-            sleep(5)
+            browser.implicitly_wait(3)
+            sleep(2)
 
             if browser.title == "Just a moment...":
                 # url = browser.current_url
                 # browser.quit()
                 # sleep(1)
                 # browser.get(url)
-                # browser.implicitly_wait(5)
+                # browser.implicitly_wait(3)
                 return {"success": False, "error": "Cloudfare blockage"}
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located((By.ID, "card-list"))
                 ):
                     try:
@@ -745,7 +746,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             # web = "https://www.amazon.com"
 
             # browser.get(web)
-            # browser.implicitly_wait(5)
+            # browser.implicitly_wait(3)
 
             # search_box = browser.find_element(By.ID, "twotabsearchtextbox")
             # search_box.send_keys(id)
@@ -755,22 +756,22 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
             # search_button = browser.find_element(By.ID, "nav-search-submit-button")
             # search_button.click()
 
-            # browser.implicitly_wait(5)
-            # sleep(3)
+            # browser.implicitly_wait(3)
+            # sleep(2)
 
             # if browser.title == "Just a moment...":
             #     # url = browser.current_url
             #     # browser.quit()
-            #     # sleep(3)
+            #     # sleep(2)
             #     # browser.get(url)
-            #     # browser.implicitly_wait(5)
+            #     # browser.implicitly_wait(3)
             #     return {"success": False, "error": "Cloudfare blockage"}
 
             browser.get(web)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -881,7 +882,7 @@ async def find_by_website_name(webName: str = Body(), id: str = Body()):
 
 
 @app.post("/all-search", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
+def find_by_website_name_top_three(webName: str = Body(), id: str = Body()):
     try:
         if validators.url(id):
             return {"success": False, "error": "Only correct input is acceptable"}
@@ -893,7 +894,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 web = "https://www2.cip1.com/"
 
                 browser.get(web)
-                browser.implicitly_wait(5)
+                browser.implicitly_wait(3)
 
                 search_box = browser.find_element(By.ID, "search_query")
                 search_box.send_keys(id)
@@ -903,8 +904,8 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 search_button = browser.find_element(By.CLASS_NAME, "headersearch-icon")
                 search_button.click()
 
-                browser.implicitly_wait(5)
-                sleep(3)
+                browser.implicitly_wait(3)
+                sleep(2)
 
                 if browser.title == "Just a moment...":
                     browser.quit()
@@ -914,7 +915,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 return {"success": False, "error": "product not found | 4", "e": e}
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -985,7 +986,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 web = "https://www.ebay.com"
 
                 browser.get(web)
-                browser.implicitly_wait(5)
+                browser.implicitly_wait(3)
 
                 search_box = browser.find_element(
                     By.CLASS_NAME, "ui-autocomplete-input"
@@ -998,8 +999,8 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 search_button = browser.find_element(By.ID, "gh-btn")
                 search_button.click()
 
-                browser.implicitly_wait(5)
-                sleep(3)
+                browser.implicitly_wait(3)
+                sleep(2)
 
                 if browser.title == "Just a moment...":
                     browser.quit()
@@ -1010,7 +1011,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
                 return {"success": False, "error": "product not found | 4", "e": e}
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -1081,7 +1082,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
             except Exception as e:
                 try:
-                    if wait(browser, 10).until(
+                    if wait(browser, 5).until(
                         EC.presence_of_all_elements_located(
                             (
                                 By.XPATH,
@@ -1144,10 +1145,10 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             web = f"https://www.partzilla.com/search?q={id}&ui=typeahead"
 
             browser.get(web)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (By.XPATH, '//div[contains(@class, "product-cards")]')
                     )
@@ -1223,10 +1224,10 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             web = f"https://partsouq.com/en/search/all?q={id}"
 
             browser.get(web)
-            browser.implicitly_wait(2)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (By.XPATH, '//div[contains(@class, "search-result-container")]')
                     )
@@ -1337,7 +1338,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             web = "https://www.aliexpress.com"
 
             browser.get(web)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             search_box = browser.find_element(By.ID, "search-key")
             search_box.send_keys(id)
@@ -1347,13 +1348,13 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             search_button = browser.find_element(By.CLASS_NAME, "search-button")
             search_button.click()
 
-            browser.implicitly_wait(5)
-            sleep(3)
+            browser.implicitly_wait(3)
+            sleep(2)
 
             if browser.title == "Just a moment...":
                 return {"success": False, "error": "Cloudfare blockage"}
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located((By.ID, "card-list"))
                 ):
                     try:
@@ -1420,10 +1421,10 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
             web = f"https://www.amazon.com/s?k={id}"
 
             browser.get(web)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -1561,7 +1562,7 @@ async def find_by_website_name_top_three(webName: str = Body(), id: str = Body()
 
 
 @app.post("/by-url", dependencies=[Depends(JWTBearer())], tags=["scrapy"])
-async def find_by_url(url: str = Form()):
+def find_by_url(url: str = Form()):
     if not validators.url(url):
         return {"success": False, "error": "Enter correct input"}
 
@@ -1572,9 +1573,9 @@ async def find_by_url(url: str = Form()):
             browser = browser_script()
 
             browser.get(url)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
-            if wait(browser, 10).until(
+            if wait(browser, 5).until(
                 EC.presence_of_all_elements_located(
                     (By.XPATH, '//div[contains(@class, "productView")]')
                 )
@@ -1624,9 +1625,9 @@ async def find_by_url(url: str = Form()):
             browser = browser_script()
 
             browser.get(url)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
-            if wait(browser, 10).until(
+            if wait(browser, 5).until(
                 EC.presence_of_all_elements_located(
                     (By.XPATH, '//div[contains(@id, "LeftSummaryPanel")]')
                 )
@@ -1676,9 +1677,9 @@ async def find_by_url(url: str = Form()):
             browser = browser_script()
 
             browser.get(url)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
-            if wait(browser, 10).until(
+            if wait(browser, 5).until(
                 EC.presence_of_all_elements_located(
                     (By.XPATH, '//div[contains(@class, "product")]')
                 )
@@ -1728,9 +1729,9 @@ async def find_by_url(url: str = Form()):
             browser = browser_script()
 
             browser.get(url)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
-            if wait(browser, 10).until(
+            if wait(browser, 5).until(
                 EC.presence_of_all_elements_located(
                     (
                         By.XPATH,
@@ -1783,10 +1784,10 @@ async def find_by_url(url: str = Form()):
             browser = browser_script()
 
             browser.get(url)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -1843,10 +1844,10 @@ async def find_by_url(url: str = Form()):
             browser = browser_script()
 
             browser.get(url)
-            browser.implicitly_wait(5)
+            browser.implicitly_wait(3)
 
             try:
-                if wait(browser, 10).until(
+                if wait(browser, 5).until(
                     EC.presence_of_all_elements_located(
                         (
                             By.XPATH,
@@ -1903,16 +1904,16 @@ async def find_by_url(url: str = Form()):
 
 
 @app.post("/test", tags=["test"])
-async def find_by_url(data: str = Body()):
+def find_by_url(data: str = Body()):
     browser = browser_script()
 
     try:
-        if not validators.url(json.loads(data)["url"]):
+        if not validators.url(eval(data)["url"]):
             browser.quit()
             return {"success": False, "error": "Enter correct input"}
 
-        browser.get(json.loads(data)["url"])
-        browser.implicitly_wait(5)
+        browser.get(eval(data)["url"])
+        browser.implicitly_wait(2)
 
         title = browser.title
 
@@ -1924,7 +1925,7 @@ async def find_by_url(data: str = Body()):
 
 
 @app.post("/signup", tags=["user"])
-async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
+def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
     dbResponse = UserInfo.create_user(user, db)
     if dbResponse["success"]:
         return signJWT(dbResponse["user"].email)
@@ -1933,7 +1934,7 @@ async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db
 
 
 @app.post("/login", tags=["user"])
-async def user_login(user: UserLoginSchema = Body(), db: Session = Depends(get_db)):
+def user_login(user: UserLoginSchema = Body(), db: Session = Depends(get_db)):
     if UserInfo.check_user(user, db):
         return signJWT(user.email)
 
